@@ -14,7 +14,8 @@ import org.lwjgl.glfw.GLFWVidMode;
 // https://www.glfw.org/docs/3.0/group__window.html
 public class Window {
 
-	private int width,height,share;
+	private int width,height,share,fps;
+	private double frameTimeOffset, lastFrameTime;
 	private long monitor;
 	private String title;
 	private long windowId;
@@ -22,10 +23,13 @@ public class Window {
 	private boolean keyPressed[];
 	private boolean mousePressed[];
 	
+	// debug : 
+	private int frameNumber;
+	
 	// https://www.glfw.org/docs/3.3/monitor_guide.html
 	private GLFWVidMode videoMode;
 	
-	public Window(int width,int height,String title) {
+	public Window(int width,int height,int fps,String title) {
 		this.width = width;
 		this.height = height;
 		this.title = title;
@@ -33,6 +37,11 @@ public class Window {
 		this.share = 0;
 		this.keyPressed = new boolean[GLFW.GLFW_KEY_LAST];
 		this.mousePressed = new boolean[GLFW.GLFW_MOUSE_BUTTON_LAST];
+		this.fps = fps;
+		this.frameTimeOffset = 1.0/this.fps;
+		
+		// 
+		this.frameNumber = 0;
 	}
 	
 	public int getWidth() {
@@ -129,6 +138,9 @@ public class Window {
 		
 		// CURRENT EVENTS
 		GLFW.glfwPollEvents();
+		
+		this.signalFrameProcess();
+		this.frameNumber++;
 	}
 	
 	// https://www.glfw.org/docs/3.0/group__context.html
@@ -197,5 +209,22 @@ public class Window {
 		return y_position.get();
 	}
 	
+	public double getTime()
+	{
+		return ((double) System.nanoTime()) / 1000000000;
+	}
+	
+	public void signalFrameProcess()
+	{
+		this.lastFrameTime = this.getTime();
+	}
+	
+	// signal the game loop that it needs to compute the frame
+	public boolean requireUpdate()
+	{
+		double current_frame_time = this.getTime();
+		double roof_time = this.lastFrameTime + this.frameTimeOffset;
+		return current_frame_time > roof_time ;
+	}
 	
 }
