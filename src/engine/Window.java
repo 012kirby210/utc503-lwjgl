@@ -1,13 +1,16 @@
 package engine;
 
 import java.nio.DoubleBuffer;
-
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 
 // ref @ https://www.glfw.org/docs/3.3/quick.html
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 
 
 // Wrapping the window to make an engine :
@@ -19,6 +22,7 @@ public class Window {
 	private long monitor;
 	private String title;
 	private long windowId;
+	private Vector3f backgroundColor;
 	
 	private boolean keyPressed[];
 	private boolean mousePressed[];
@@ -42,6 +46,7 @@ public class Window {
 		
 		// 
 		this.frameNumber = 0;
+		this.backgroundColor = new Vector3f(0.0f,0.0f,0.0f);
 	}
 	
 	public int getWidth() {
@@ -96,6 +101,13 @@ public class Window {
 			System.exit(-1);
 		}
 		
+		// the this.share variable wasn't set to any context, so let's associate the opengl context to
+		// the this.windowId identified window
+		// https://www.lwjgl.org/guide ; 
+		// https://www.glfw.org/docs/3.1/group__context.html#ga1c04dc242268f827290fe40aa1c91157
+		GLFW.glfwMakeContextCurrent(this.windowId);
+		GL.createCapabilities();
+		
 		// set the video mode :
 		
 		this.videoMode = GLFW.glfwGetVideoMode(this.monitor);
@@ -141,6 +153,11 @@ public class Window {
 		
 		this.signalFrameProcess();
 		this.frameNumber++;
+		// specify what color to use when the clear's method are called
+		// https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/clearColor
+		GL30.glClearColor(this.backgroundColor.x, this.backgroundColor.y, this.backgroundColor.y, 1.0f);
+		// force the color_buffer_bit to be cleared
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 	}
 	
 	// https://www.glfw.org/docs/3.0/group__context.html
@@ -225,6 +242,16 @@ public class Window {
 		double current_frame_time = this.getTime();
 		double roof_time = this.lastFrameTime + this.frameTimeOffset;
 		return current_frame_time > roof_time ;
+	}
+	
+	public void setBackgroundColor(float r, float g, float b)
+	{
+		this.backgroundColor.set(r,g,b);
+	}
+	
+	public void safeTermination()
+	{
+		GLFW.glfwTerminate();
 	}
 	
 }
