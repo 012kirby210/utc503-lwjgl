@@ -1,5 +1,9 @@
 package engine;
 
+import java.nio.DoubleBuffer;
+
+import org.lwjgl.BufferUtils;
+
 // ref @ https://www.glfw.org/docs/3.3/quick.html
 
 import org.lwjgl.glfw.GLFW;
@@ -15,6 +19,9 @@ public class Window {
 	private String title;
 	private long windowId;
 	
+	private boolean keyPressed[];
+	private boolean mousePressed[];
+	
 	// https://www.glfw.org/docs/3.3/monitor_guide.html
 	private GLFWVidMode videoMode;
 	
@@ -24,6 +31,8 @@ public class Window {
 		this.title = title;
 		this.monitor = 0;
 		this.share = 0;
+		this.keyPressed = new boolean[GLFW.GLFW_KEY_LAST];
+		this.mousePressed = new boolean[GLFW.GLFW_MOUSE_BUTTON_LAST];
 	}
 	
 	public int getWidth() {
@@ -102,6 +111,23 @@ public class Window {
 	}
 	
 	public void update() {
+		// the update frame is split into 2 sections
+		
+		// PAST EVENTS
+		// record all the pressed key
+		// 
+		for (int i=0; i<GLFW.GLFW_KEY_LAST; i++) {
+			this.keyPressed[i] = this.isKeyDown(i);
+		}
+		
+		// record all the mouse button pressed
+		for (int i=0; i<GLFW.GLFW_MOUSE_BUTTON_LAST; i++) {
+			this.mousePressed[i] = this.isMouseDown(i);
+		}
+		
+		// all past key events are recorded before that line
+		
+		// CURRENT EVENTS
 		GLFW.glfwPollEvents();
 	}
 	
@@ -113,5 +139,63 @@ public class Window {
 	public void destroy() {
 		GLFW.glfwTerminate();
 	}
+	
+	// it's better to use the callback event system :
+	// https://www.glfw.org/docs/latest/input_guide.html
+	// but for now it will so the stuff
+	// https://www.glfw.org/docs/3.2/group__input.html
+	public boolean isKeyDown(int keyCode)
+	{
+	  boolean is_down = GLFW.glfwGetKey(this.windowId, keyCode) == GLFW.GLFW_PRESS;
+	  return is_down; 
+	}
+	
+	public boolean isMouseDown(int mouseButton) {
+		boolean is_down = GLFW.glfwGetMouseButton(this.windowId, mouseButton) == GLFW.GLFW_PRESS;
+		  return is_down; 
+	}
+	
+	public boolean isKeyPressed(int keyCode)
+	{
+		boolean is_pressed = GLFW.glfwGetKey(this.windowId, keyCode) == GLFW.GLFW_PRESS;
+		// the update window function will set the keyPressed array array before polling for event
+		// so the producer/consumer scheme will be handled with a forced way anti-lock pattern semaphores 
+		return is_pressed && !this.keyPressed[keyCode];
+	}
+	
+	public boolean isKeyReleased(int keyCode)
+	{
+		boolean is_released = GLFW.glfwGetKey(this.windowId, keyCode) == GLFW.GLFW_RELEASE;
+		return is_released && this.keyPressed[keyCode];
+	}
+	
+	public boolean isMousePressed(int mouseButton)
+	{
+		boolean is_pressed = GLFW.glfwGetMouseButton(this.windowId, mouseButton) == GLFW.GLFW_PRESS;
+		// the update window function will set the keyPressed array array before polling for event
+		// so the producer/consumer scheme will be handled with a forced way anti-lock pattern semaphores 
+		return is_pressed && !this.mousePressed[mouseButton];
+	}
+	
+	public boolean isMouseReleased(int mouseButton)
+	{
+		boolean is_released = GLFW.glfwGetMouseButton(this.windowId, mouseButton) == GLFW.GLFW_RELEASE;
+		return is_released && this.mousePressed[mouseButton];
+	}
+	
+	public double getMouseX()
+	{
+		DoubleBuffer x_position = BufferUtils.createDoubleBuffer(1);
+		GLFW.glfwGetCursorPos(this.windowId,x_position,null);
+		return x_position.get();
+	}
+	
+	public double getMouseY()
+	{
+		DoubleBuffer y_position = BufferUtils.createDoubleBuffer(1);
+		GLFW.glfwGetCursorPos(this.windowId,null,y_position);
+		return y_position.get();
+	}
+	
 	
 }

@@ -1,11 +1,13 @@
 package main;
 
+import org.lwjgl.glfw.GLFW;
+
 import engine.Window;
 
 public class Main {
 
 	public static void main(String[] args) {
-		Window window = new Window(200,150,"ma fenetre");
+		Window window = new Window(640,480,"ma fenetre");
 		window.create();
 		window.showWindow();
 		
@@ -17,6 +19,29 @@ public class Main {
 			window.swapBuffers();
 			// poll for event.
 			window.update();
+			
+			// check for inputs :
+			if (window.isKeyPressed(GLFW.GLFW_KEY_A)) {
+				System.out.println("the key A was pressed");
+			}
+			if (window.isKeyReleased(GLFW.GLFW_KEY_A)) {
+				System.out.println("the key A was released");
+			}
+			if (window.isMousePressed(GLFW.GLFW_MOUSE_BUTTON_LEFT)) {
+				// where was the cursor once left button was pressed
+				double x_position = window.getMouseX();
+				double y_position = window.getMouseY();
+				System.out.println("The mouse button left was pressed at the location : " +
+				  " [ " + x_position + ", " + y_position + " ] ");
+			}
+			if (window.isMouseReleased(GLFW.GLFW_MOUSE_BUTTON_LEFT)) {
+				// where was the cursor once the left button was left
+				double x_position = window.getMouseX();
+				double y_position = window.getMouseY();
+				System.out.println("The mouse button left was released at the location : " +
+				  " [ " + x_position + ", " + y_position + " ] ");
+			}
+			
 		}
 	}
 
