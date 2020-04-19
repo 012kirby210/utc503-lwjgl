@@ -3,6 +3,8 @@ package main;
 import org.lwjgl.glfw.GLFW;
 
 import engine.Window;
+import engine.render.Model;
+import engine.render.Renderer;
 
 public class Main {
 
@@ -10,6 +12,22 @@ public class Main {
 		Window window = new Window(300,150,60,"ma fenetre");
 		window.setBackgroundColor(1.0f, 0.0f, 0.0f);
 		window.create();
+		
+		Renderer renderer = new Renderer();
+		
+		float[] model_ = new float[] { 
+				-0.5f, 0.5f, 0.0f,
+				0.5f, 0.5f, 0.0f,
+				0.5f, -0.5f, 0.0f,
+				
+				-0.5f, -0.5f, 0.0f,
+				0.5f, -0.5f, 0.0f,
+				-0.5f, 0.5f, 0.0f,
+		};
+		Model model = new Model(model_);
+		model.create();
+		
+		
 		window.showWindow();
 		
 		// game loop : <=> tant que la fenetre n'est pas considérée comme fermée.
@@ -22,7 +40,7 @@ public class Main {
 				window.swapBuffers();
 				// poll for event.
 				window.update();
-				
+				renderer.render(model);
 				// check for inputs :
 				if (window.isKeyPressed(GLFW.GLFW_KEY_A)) {
 					System.out.println("the key A was pressed");
@@ -48,7 +66,7 @@ public class Main {
 			}
 			
 		}
-		
+		model.remove();
 		window.safeTermination();
 	}
 
