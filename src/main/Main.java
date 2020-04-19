@@ -8,6 +8,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		Window window = new Window(300,150,60,"ma fenetre");
+		window.setBackgroundColor(1.0f, 0.0f, 0.0f);
 		window.create();
 		window.showWindow();
 		
@@ -47,6 +48,8 @@ public class Main {
 			}
 			
 		}
+		
+		window.safeTermination();
 	}
 
 }
