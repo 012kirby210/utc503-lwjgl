@@ -1,18 +1,40 @@
 package engine.render;
 
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.joml.Vector3f;
 
 public class Model {
 	
 	private int vertexArrayID, vertexBufferID, vertexCount;
 	private float[] vertices;
 	
+	public Model(Vector3f vertices[])
+	{
+		int vertices_number = vertices.length;
+		int array_size = vertices_number * 3;
+		
+		this.vertices = new float[array_size];
+		for (int i=0, j=0; i<vertices_number; i++) {
+			this.vertices[j++] = vertices[i].x;
+			this.vertices[j++] = vertices[i].y;
+			this.vertices[j++] = vertices[i].z;
+			System.out.format("x: %f, y: %f, z: %f", vertices[i].x, vertices[i].y,vertices[i].z);
+		}
+		this.vertexCount = this.vertices.length/3;
+	}
+	
+	@Override
+	public String toString() {
+		return "Model [vertexCount=" + vertexCount + ", vertices=" + Arrays.toString(vertices) + "]";
+	}
+
 	public Model(float vertice[])
 	{
 		this.vertices = vertice;
