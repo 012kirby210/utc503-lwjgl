@@ -1,6 +1,9 @@
-package cnam;
+package cnam.tp1;
 
-import cnam.interfaces.ITriangulation;
+import cnam.tp1.exception.NotAPolygonException;
+import cnam.tp1.interfaces.IComparable;
+import cnam.tp1.interfaces.IGeometrique;
+import cnam.tp1.interfaces.ITriangulation;
 
 import java.util.Arrays;
 
@@ -14,10 +17,21 @@ import org.joml.Vector3f;
  * @author 012kirby210@gmail.com
  *
  */
-public class Polygone implements ITriangulation {
+public class Polygone implements ITriangulation,IGeometrique,IComparable<Polygone> {
+	
+	/** le scalaire valant la distance inter-sommet **/
 	private float edge_length;
+	/** le nombre de cotés du polygône **/
 	private int edge_number;
+	/** les coordonnées du polygone sur un même plan **/
 	private Vector2f[] coordinates;
+	/** la valeur du perimètre */
+	private float perimeter;
+	
+	///
+	/**		C O N S T R U C T O R S		**/
+	///
+	///
 	
 	/**
 	 * Constructeur par défaut d'un polygone.
@@ -62,8 +76,13 @@ public class Polygone implements ITriangulation {
 		this.coordinates = new Vector2f[number];
 		
 		this.computeCoordinates();
+		this.perimeter = this.perimetre();
 	}
 	
+	///
+	/**		G E T T E R S / S E T T E R S		**/
+	///
+	///
 	
 	/**
 	 * @return the edge_length
@@ -77,6 +96,8 @@ public class Polygone implements ITriangulation {
 	 */
 	public void setEdge_length(float edge_length) {
 		this.edge_length = edge_length;
+		this.perimeter = this.perimetre();
+		this.computeCoordinates();
 	}
 
 	/**
@@ -89,11 +110,58 @@ public class Polygone implements ITriangulation {
 	/**
 	 * @param edge_number the edge_number to set
 	 */
-	public void setEdge_number(int edge_number) {
+	private void setEdge_number(int edge_number) {
 		this.edge_number = edge_number;
+		this.coordinates = new Vector2f[this.edge_number];
+		this.computeCoordinates();
 	}
 
+
+	/**
+	 * @return the coordinates
+	 */
+	public Vector2f[] getCoordinates() {
+		return coordinates;
+	}
+
+	/**
+	 * @param coordinates the coordinates to set
+	 */
+	public void setCoordinates(Vector2f[] coordinates) {
+		this.coordinates = coordinates;
+	}
 	
+    ///
+	/**		P U B L I C   M E T H O D S 		**/
+	///
+	///
+	
+	/**
+	 * Construit un nouvel objet avec les caractéristiques
+	 * de l'appelant excepté ne nombre de cotés du polygone
+	 * paramètrable.
+	 * @param n le nombre de coté à ajouter ou à retrancher
+	 * @return le nouveau polygone
+	 * @throws NotAPolygonException si le nombre de coté 
+	 * est insuffisant pour construire nouveau polygone.
+	 */
+	public Polygone presqueClone(int n) throws NotAPolygonException {
+		Polygone p ;
+		int new_edge_number = this.edge_number + n;
+		if (new_edge_number >= 3 ) {
+			p = new Polygone(new_edge_number,this.edge_length);
+		}else{
+			String conjugatedSideNumber = (new_edge_number == 1)? " coté." : "cotés."; 
+			String exceptionMessage = "Le polygône ne peut avoir moins de 3 cotés.\n" 
+					+ "Actuellement il dispose de "
+					+ new_edge_number
+					+ conjugatedSideNumber;
+			throw new NotAPolygonException(exceptionMessage);
+		}
+		return p;
+	}
+	
+	///		I M P L E M E N T E R S 
 	
 	public Vector3f[] triangulate() {
 		
@@ -123,21 +191,78 @@ public class Polygone implements ITriangulation {
 		return result;
 	}
 
+	/**
+	 * renvoie le perimetre sous forme de float 
+	 */
+	public float perimetre() {
+		float perimeter = 0.0f;
+		for (int i=0; i<this.edge_number ; i++) {
+			perimeter+=this.edge_length;
+		}
+		return perimeter;
+	}
+	
+	
+	/**
+	 * Compare les périmètres des polygones.
+	 */
+	public boolean estPlusGrandQue(Polygone a) throws NotAPolygonException {
+		boolean result = false;
+		try {
+			Polygone b = (Polygone) a;
+			result = this.mesure() > b.mesure(); 
+		}catch(ClassCastException e) {
+			String exceptionMessage = "L'argument n'est pas un polygone," 
+					+ "c'est un/e " + this.getClass().getName();
+			throw new NotAPolygonException(exceptionMessage);
+		}
+		return result;
+	}
+
+	/**
+	 * Compare les périmètres des polygones.
+	 */
+	public boolean estPlusPetitQue(Polygone a) throws NotAPolygonException {
+		boolean result = false;
+		try {
+			Polygone b = (Polygone) a;
+			result = this.mesure() < b.mesure(); 
+		}catch(ClassCastException e) {
+			String exceptionMessage = "L'argument n'est pas un polygone," 
+					+ "c'est un/e " + this.getClass().getName();
+			throw new NotAPolygonException(exceptionMessage);
+		}
+		return result;
+	}
+
+	public double mesure() {
+		return this.perimeter;
+	}
+
+	///
+	/** 	P U B L I C   O V E R R I D E   	 **/
+	///
+	///
+	
 	@Override
 	public String toString() {
 		return "Polygone [edge_length=" + edge_length + ", edge_number=" + edge_number + ", coordinates="
-				+ Arrays.toString(coordinates) + "]";
+				+ Arrays.toString(coordinates) 
+				+ ", perimeter="
+				+ this.perimeter 
+				+ "]";
 	}
 	
-	// *****************************************
-	//     P R I V A T E
-	// *****************************************
+	
+	///
+	/**		P R I V A T E    	**/
+	///
+	///
 	
 	/**
 	 * Set the coordinates of the polygon.
 	 */
-	private void computeCoordinates()
-	{
+	private void computeCoordinates() {
 		// We assume the center on 0,0
 		// Algo : we use the trigonometric circle
 		// We set the first vertex @ cos(2PI)
@@ -168,20 +293,5 @@ public class Polygone implements ITriangulation {
 		}
 		
 	}
-
-	/**
-	 * @return the coordinates
-	 */
-	public Vector2f[] getCoordinates() {
-		return coordinates;
-	}
-
-	/**
-	 * @param coordinates the coordinates to set
-	 */
-	public void setCoordinates(Vector2f[] coordinates) {
-		this.coordinates = coordinates;
-	}
-	
 	
 }

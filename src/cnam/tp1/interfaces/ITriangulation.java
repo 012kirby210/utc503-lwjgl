@@ -1,4 +1,4 @@
-package cnam.interfaces;
+package cnam.tp1.interfaces;
 
 import org.joml.Vector3f;
 

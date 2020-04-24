@@ -5,39 +5,53 @@ import org.lwjgl.glfw.GLFW;
 import engine.Window;
 import engine.render.Model;
 import engine.render.Renderer;
+import cnam.tp1.Polygone;
+import cnam.tp1.exception.NotAPolygonException;
 
-import cnam.Polygone;
 import org.joml.Vector3f;
 
 public class Main {
 
 	public static void main(String[] args) {
-		Window window = new Window(300,300,60,"ma fenetre");
-		window.setBackgroundColor(1.0f, 0.0f, 0.0f);
+		Window window = new Window(300,300,60,"TP1 Cnam");
+		int[] bgcolor = {0, 96, 100};
+		window.setBackgroundColor(bgcolor[0]/255.0f, bgcolor[1]/255.0f, bgcolor[2]/255.0f);
 		window.create();
 		
 		Renderer renderer = new Renderer();
 		
-		//  +  .  +      |    +  .  
-		//     .       --.--     .
-		//     .  +      |    +  .  +
-		//
-		float[] model_ = new float[] { 
-				-0.5f, 0.5f, 0.0f,
-				0.5f, 0.5f, 0.0f,
-				0.5f, -0.5f, 0.0f,
-				
-				/*-0.5f, -0.5f, 0.0f,
-				0.5f, -0.5f, 0.0f,
-				-0.5f, 0.5f, 0.0f,*/
-		};
-		
-		// get a polygone with 6 side and a 0.5f of side length.
-		Polygone p = new Polygone(7,0.5f);
+		Polygone p = new Polygone(10,0.5f);
 		Vector3f[] triangles = p.triangulate();
 		
-		//Model model = new Model(model_);
-		//model.create();
+		//
+		//	 Utilisation de presque clone.
+		//
+		//
+		
+		Polygone p2 = null;
+		try {
+			p2 = p.presqueClone(+10);
+			p2.setEdge_length(0.3f);
+		}catch(NotAPolygonException e) {
+			System.out.println(e.getMessage());
+		}
+		
+		triangles = p2.triangulate();
+		
+		//
+		// 	Utilisation de estPlusPetitQue
+		//
+		//
+		
+		try {
+			triangles = p2.estPlusPetitQue(p) ? 
+					p2.triangulate() : p.triangulate();
+		}catch(Exception e) {
+			// fade away 
+			System.out.println(e.getMessage());
+			triangles = p.triangulate();
+		}
+		
 		Model model = new Model(triangles);
 		model.create();
 		System.out.println(model.toString());
